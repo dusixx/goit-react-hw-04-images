@@ -1,5 +1,7 @@
 import styled from '@emotion/styled';
 
+const DEF_COLOR_BG = 'rgb(0 0 0 / 0.5)';
+
 export const Backdrop = styled.div`
   position: fixed;
   top: 0;
@@ -9,7 +11,7 @@ export const Backdrop = styled.div`
   height: 100%;
   z-index: 999;
 
-  background-color: ${({ bgColor }) => bgColor || 'rgb(0 0 0 / 0.5)'};
+  background-color: ${({ bgColor }) => bgColor || DEF_COLOR_BG};
   overflow: auto;
 `;
 

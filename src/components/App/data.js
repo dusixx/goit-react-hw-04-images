@@ -1,7 +1,7 @@
-import { PixabayService } from 'components/utils';
+import PixabayService from 'services/pixabaySrv';
 
 // orientation: all, imageType: all, order: most relevant
-export const initialQueryParams = { page: 1, perPage: 60, safesearch: true };
+export const initialQueryParams = { page: 1, perPage: 6, safesearch: true };
 
 export const status = {
   IDLE: 'idle',

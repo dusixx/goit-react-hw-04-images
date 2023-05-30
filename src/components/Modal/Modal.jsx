@@ -1,28 +1,24 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { func, string } from 'prop-types';
+import { func, string, bool } from 'prop-types';
 import { Backdrop, Container } from './Modal.styled';
-import ScrollToggler from './scrollToggler';
+import BodyScrollLock from 'components/BodyScrollLock';
 
-const scroll = new ScrollToggler();
 const rootModal = document.querySelector('#root-modal');
+const { addEventListener, removeEventListener } = window;
 
 //
 // Modal
 //
 
-const Modal = ({ children, bgColor, onClose }) => {
+const Modal = ({ children, bgColor, onClose, bodyScrollLock = true }) => {
   useEffect(() => {
     const handleKeydown = ({ code }) =>
       code === 'Escape' && onClose && onClose();
 
-    scroll.disable();
-    window.addEventListener('keydown', handleKeydown);
+    addEventListener('keydown', handleKeydown);
 
-    return () => {
-      scroll.enable();
-      window.removeEventListener('keydown', handleKeydown);
-    };
+    return () => removeEventListener('keydown', handleKeydown);
   }, [onClose]);
 
   const handleBackdropClick = ({ currentTarget, target }) =>
@@ -30,6 +26,7 @@ const Modal = ({ children, bgColor, onClose }) => {
 
   return createPortal(
     <Backdrop onClick={handleBackdropClick} bgColor={bgColor}>
+      {bodyScrollLock && <BodyScrollLock />}
       <Container>{children}</Container>
     </Backdrop>,
     rootModal
@@ -39,6 +36,7 @@ const Modal = ({ children, bgColor, onClose }) => {
 Modal.propTypes = {
   bgColor: string,
   onClose: func,
+  bodyScrollLock: bool,
 };
 
 export default Modal;
