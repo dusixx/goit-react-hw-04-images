@@ -1,47 +1,44 @@
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { func } from 'prop-types';
+import { func, string } from 'prop-types';
 import { Backdrop, Container } from './Modal.styled';
 import ScrollToggler from './scrollToggler';
 
 const scroll = new ScrollToggler();
 const rootModal = document.querySelector('#root-modal');
 
-export default class Modal extends Component {
-  static propTypes = {
-    onClose: func,
-  };
+//
+// Modal
+//
 
-  componentDidMount() {
+const Modal = ({ children, bgColor, onClose }) => {
+  useEffect(() => {
+    const handleKeydown = ({ code }) =>
+      code === 'Escape' && onClose && onClose();
+
     scroll.disable();
-    window.addEventListener('keydown', this.handleKeydown);
-  }
+    window.addEventListener('keydown', handleKeydown);
 
-  componentWillUnmount() {
-    scroll.enable();
-    window.removeEventListener('keydown', this.handleKeydown);
-  }
+    return () => {
+      scroll.enable();
+      window.removeEventListener('keydown', handleKeydown);
+    };
+  }, [onClose]);
 
-  handleKeydown = e => {
-    const { onClose } = this.props;
-    if (e.code === 'Escape') onClose && onClose(e);
-  };
+  const handleBackdropClick = ({ currentTarget, target }) =>
+    currentTarget === target && onClose && onClose();
 
-  handleBackdropClick = e => {
-    const { onClose } = this.props;
-    if (e.currentTarget !== e.target) return;
-    onClose && onClose(e);
-  };
+  return createPortal(
+    <Backdrop onClick={handleBackdropClick} bgColor={bgColor}>
+      <Container>{children}</Container>
+    </Backdrop>,
+    rootModal
+  );
+};
 
-  render() {
-    const { children, bgColor } = this.props;
-    const { handleBackdropClick } = this;
+Modal.propTypes = {
+  bgColor: string,
+  onClose: func,
+};
 
-    return createPortal(
-      <Backdrop onClick={handleBackdropClick} bgColor={bgColor}>
-        <Container>{children}</Container>
-      </Backdrop>,
-      rootModal
-    );
-  }
-}
+export default Modal;

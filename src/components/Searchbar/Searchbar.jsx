@@ -1,58 +1,51 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { oneOfType, string, number, func } from 'prop-types';
 import { BiSearch as IconSearch } from 'react-icons/bi';
 import { Header, SearchBtn, SearchForm } from './Searchbar.styled';
-import { TextField } from 'components/TextField';
+import TextField from 'components/TextField';
 
-export default class Searchbar extends Component {
-  static propTypes = {
-    width: oneOfType([string, number]),
-    height: oneOfType([string, number]),
-    onSubmit: func,
-    onChange: func,
+// извлекаем onChange, чтобы не перебивал (1) при прокидывании restProps (2)
+const Searchbar = ({ width, height, onSubmit, onChange, ...restProps }) => {
+  const [query, setQuery] = useState('');
+
+  const handleSearchQueryChange = e => {
+    const query = e?.target.value.trim() || '';
+    setQuery(query);
+    onChange && onChange(query, e);
   };
 
-  state = { searchQuery: '' };
-
-  handleSearchQueryChange = e => {
-    const { onChange } = this.props;
-    const searchQuery = e?.target.value.trim() || '';
-    this.setState({ searchQuery });
-    onChange && onChange(e, searchQuery);
-  };
-
-  handleFormSubmit = e => {
+  const handleFormSubmit = e => {
     e.preventDefault();
-    const { onSubmit } = this.props;
-    const searchQuery = this.state.searchQuery.trim();
-    onSubmit && onSubmit(e, searchQuery);
+    onSubmit && onSubmit(query, e);
   };
 
-  render() {
-    // извлекаем onChange, чтобы не перебивал текущий при прокидывании restProps (*)
-    const { width, height, onChange, ...restProps } = this.props;
-    const { handleSearchQueryChange, handleFormSubmit } = this;
-    const { searchQuery } = this.state;
+  return (
+    <Header>
+      <SearchForm
+        width={width}
+        height={height || '70%'}
+        onSubmit={handleFormSubmit}
+      >
+        <TextField
+          autocomplete="off"
+          placeholder="Search images..."
+          onChange={handleSearchQueryChange} // (1)
+          value={query}
+          {...restProps} // (2)
+        />
+        <SearchBtn type="submit" disabled={!query}>
+          <IconSearch size="95%" />
+        </SearchBtn>
+      </SearchForm>
+    </Header>
+  );
+};
 
-    return (
-      <Header>
-        <SearchForm
-          width={width}
-          height={height || '70%'}
-          onSubmit={handleFormSubmit}
-        >
-          <TextField
-            autocomplete="off"
-            placeholder="Search images..."
-            onChange={handleSearchQueryChange}
-            value={searchQuery}
-            {...restProps} // (*)
-          />
-          <SearchBtn type="submit" disabled={!searchQuery}>
-            <IconSearch size="95%" />
-          </SearchBtn>
-        </SearchForm>
-      </Header>
-    );
-  }
-}
+Searchbar.propTypes = {
+  width: oneOfType([string, number]),
+  height: oneOfType([string, number]),
+  onSubmit: func,
+  onChange: func,
+};
+
+export default Searchbar;

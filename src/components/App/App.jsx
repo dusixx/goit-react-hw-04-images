@@ -1,96 +1,86 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { Container, Button } from './App.styled';
 import { initialQueryParams, message, status, pixabayService } from './data';
 import Searchbar from 'components/Searchbar';
-import ImageGallery from 'components/ImageGallery';
+import MemoizedImageGallery from 'components/ImageGallery';
 import Loader from 'components/Loader';
 
-export class App extends Component {
-  state = {
-    status: status.IDLE,
-    hits: [],
-  };
+const { IDLE, REJECTED, RESOLVED, PENDING } = status;
 
-  componentDidUpdate(_, prevState) {
-    if (this.status === status.IDLE) return;
+//
+// App
+//
 
-    if (this.status === status.REJECTED) {
-      this.status = status.IDLE;
+export const App = () => {
+  const [status, setStatus] = useState(IDLE);
+  const [hits, setHits] = useState([]);
+
+  useEffect(() => {
+    switch (status) {
+      case IDLE:
+      default:
+        return;
+
+      case REJECTED:
+        return setStatus(IDLE);
+
+      case RESOLVED:
+        if (pixabayService.isEOSReached) {
+          setStatus(IDLE);
+          if (hits.length) toast.info(message.EOS_REACHED);
+          else toast.warn(message.NO_SEARCH_RESULT);
+        }
     }
+  }, [status, hits]);
 
-    if (this.status === status.RESOLVED) {
-      if (pixabayService.isEOSReached) {
-        this.status = status.IDLE;
-
-        return this.state.hits.length
-          ? toast.info(message.EOS_REACHED)
-          : toast.warn(message.NO_SEARCH_RESULT);
-      }
-    }
-  }
-
-  set status(value) {
-    this.setState({ status: value });
-  }
-
-  get status() {
-    return this.state.status;
-  }
-
-  fetchImages = async params => {
+  const fetchImages = async params => {
     try {
-      this.status = status.PENDING;
+      setStatus(PENDING);
       const resp = await pixabayService.fetch(params);
 
-      this.setState(cur => ({
-        hits: [...cur.hits, ...resp.data.hits],
-        status: status.RESOLVED,
-      }));
+      setHits(cur => [...cur, ...resp.data.hits]);
+      setStatus(RESOLVED);
+
       // error
     } catch ({ message }) {
-      this.status = status.REJECTED;
+      setStatus(REJECTED);
       toast.error(message);
     }
   };
 
-  handleSearchSubmit = (_, searchQuery) => {
-    this.setState({ hits: [] }, () =>
-      this.fetchImages({
-        ...initialQueryParams,
-        q: searchQuery,
-      })
-    );
+  const handleSearchSubmit = query => {
+    setHits([]);
+    fetchImages({
+      ...initialQueryParams,
+      q: query,
+    });
   };
 
-  handleSearchQueryChange = (_, query) => {
-    if (!query) this.setState({ hits: [] });
+  const handleSearchQueryChange = query => {
+    if (!query) setHits([]);
   };
 
-  render() {
-    const { handleSearchSubmit, handleSearchQueryChange, fetchImages } = this;
-    const { hits } = this.state;
+  return (
+    <Container>
+      <Loader visible={status === PENDING} />
 
-    return (
-      <Container>
-        <Loader visible={this.status === status.PENDING} />
+      <Searchbar
+        onSubmit={handleSearchSubmit}
+        onChange={handleSearchQueryChange}
+      />
 
-        <Searchbar
-          onSubmit={handleSearchSubmit}
-          onChange={handleSearchQueryChange}
-        />
+      {/* Не рендерится при изменении status, только hits */}
+      <MemoizedImageGallery hits={hits} />
 
-        <ImageGallery hits={hits} />
+      {status !== IDLE && hits.length > 0 && (
+        // () => fetchImages() чтобы избежать передачи (e) в фукнцию
+        <Button type="button" onClick={() => fetchImages()}>
+          Load more
+        </Button>
+      )}
 
-        {this.status !== status.IDLE && hits.length > 0 && (
-          // () => fetchImages() чтобы избежать передачи e => {...}  в фукнцию
-          <Button type="button" onClick={() => fetchImages()}>
-            Load more
-          </Button>
-        )}
-
-        <ToastContainer autoClose={1500} />
-      </Container>
-    );
-  }
-}
+      <ToastContainer autoClose={1500} progressStyle={{ height: '3px' }} />
+    </Container>
+  );
+};

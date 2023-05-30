@@ -2,7 +2,7 @@ import { func, string } from 'prop-types';
 import { ClearBtn, InputWrapper, Input, Field } from './TextField.styled';
 import { VscClose as IconClose } from 'react-icons/vsc';
 
-export const TextField = ({ value, type, onChange, ...restProps }) => {
+const TextField = ({ value, type, onChange, ...restProps }) => {
   return (
     <Field>
       <InputWrapper>
@@ -28,3 +28,5 @@ TextField.propTypes = {
   type: string,
   onChange: func,
 };
+
+export default TextField;

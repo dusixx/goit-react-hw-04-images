@@ -1,6 +1,8 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { string } from 'prop-types';
 import Modal from 'components/Modal';
+import { Spinner } from 'components/Loader';
+
 import {
   Link,
   Image,
@@ -8,53 +10,41 @@ import {
   Overlay,
   Container,
 } from './ImageGalleryItem.styled';
-import { Spinner } from 'components/Loader';
 
 const COLOR_MODAL_BG = 'rgb(255 255 255 / 0.7)';
 
-export default class ImageGalleryItem extends Component {
-  static propTypes = {
-    url: string,
-    tags: string,
-    preview: string,
-  };
+export const ImageGalleryItem = ({ url, tags, preview }) => {
+  const [showModal, setShowModal] = useState(false);
+  const [wasLoaded, setWasLoaded] = useState(false);
 
-  state = { showModal: false, wasLoaded: false };
-
-  handleModalClose = () => {
-    this.setState({ showModal: false });
-  };
-
-  handleImageClick = e => {
+  const handleImageClick = e => {
     e.preventDefault();
-    this.setState({ showModal: true });
+    setShowModal(true);
   };
 
-  handleModalImgLoaded = () => this.setState({ wasLoaded: true });
+  return (
+    <>
+      <Link href={url} onClick={handleImageClick}>
+        <Image src={preview} alt={tags} loading="lazy" />
+      </Link>
 
-  render() {
-    const { handleImageClick, handleModalClose, handleModalImgLoaded } = this;
-    const { url, tags, preview } = this.props;
-    const { showModal, wasLoaded } = this.state;
+      {showModal && (
+        <Modal onClose={() => setShowModal(false)} bgColor={COLOR_MODAL_BG}>
+          <Container>
+            <Spinner width={40} visible={!wasLoaded} />
+            <Thumb>
+              <img src={url} alt={tags} onLoad={() => setWasLoaded(true)} />
+              {wasLoaded && <Overlay>{tags}</Overlay>}
+            </Thumb>
+          </Container>
+        </Modal>
+      )}
+    </>
+  );
+};
 
-    return (
-      <>
-        <Link href={url} onClick={handleImageClick}>
-          <Image src={preview} alt={tags} loading="lazy" />
-        </Link>
-
-        {showModal && (
-          <Modal onClose={handleModalClose} bgColor={COLOR_MODAL_BG}>
-            <Container>
-              <Spinner width={40} visible={!wasLoaded} />
-              <Thumb>
-                <img src={url} alt={tags} onLoad={handleModalImgLoaded} />
-                {wasLoaded && <Overlay>{tags}</Overlay>}
-              </Thumb>
-            </Container>
-          </Modal>
-        )}
-      </>
-    );
-  }
-}
+ImageGalleryItem.propTypes = {
+  url: string.isRequired,
+  tags: string.isRequired,
+  preview: string.isRequired,
+};
