@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { func, string, bool } from 'prop-types';
 import { Backdrop, Container } from './Modal.styled';
@@ -6,12 +6,13 @@ import BodyScrollLock from 'components/BodyScrollLock';
 import { Transition } from 'react-transition-group';
 
 const rootModal = document.querySelector('#root-modal');
-const { addEventListener, removeEventListener } = window;
 
 const TRANS_DURATION = 250;
 
 const defaultStyle = {
-  transition: `opacity ${TRANS_DURATION}ms ease`,
+  transitionProperty: `opacity`,
+  transitionDuration: 'var(--trans-duration)',
+  transitionTimingFunction: 'var(--trans-func)',
   opacity: 0,
 };
 
@@ -31,13 +32,15 @@ const Modal = ({
   bodyScrollLock = true,
   visible,
 }) => {
+  const backdropRef = useRef(null);
+
   useEffect(() => {
     const handleKeydown = ({ code }) =>
       code === 'Escape' && onClose && onClose();
 
-    addEventListener('keydown', handleKeydown);
+    window.addEventListener('keydown', handleKeydown);
 
-    return () => removeEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
   }, [onClose]);
 
   const handleBackdropClick = ({ currentTarget, target }) =>
@@ -48,10 +51,12 @@ const Modal = ({
       mountOnEnter
       unmountOnExit
       timeout={TRANS_DURATION}
+      nodeRef={backdropRef}
       in={visible}
     >
       {state => (
         <Backdrop
+          ref={backdropRef}
           onClick={handleBackdropClick}
           bgColor={bgColor}
           style={{
