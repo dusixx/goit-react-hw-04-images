@@ -28,17 +28,19 @@ export const ImageGalleryItem = ({ url, tags, preview }) => {
         <Image src={preview} alt={tags} loading="lazy" />
       </Link>
 
-      {showModal && (
-        <Modal onClose={() => setShowModal(false)} bgColor={COLOR_MODAL_BG}>
-          <Container>
-            <Spinner width={40} visible={!wasLoaded} />
-            <Thumb>
-              <img src={url} alt={tags} onLoad={() => setWasLoaded(true)} />
-              {wasLoaded && <Overlay>{tags}</Overlay>}
-            </Thumb>
-          </Container>
-        </Modal>
-      )}
+      <Modal
+        onClose={() => setShowModal(false)}
+        bgColor={COLOR_MODAL_BG}
+        visible={showModal}
+      >
+        <Container>
+          <Spinner width={40} visible={!wasLoaded} />
+          <Thumb>
+            <img src={url} alt={tags} onLoad={() => setWasLoaded(true)} />
+            {wasLoaded && <Overlay>{tags}</Overlay>}
+          </Thumb>
+        </Container>
+      </Modal>
     </>
   );
 };
