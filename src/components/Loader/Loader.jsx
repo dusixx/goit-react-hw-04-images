@@ -19,12 +19,11 @@ export const Loader = ({
   visible,
   bgColor = DEF_MODAL_BGCOLOR,
   ...restProps
-}) =>
-  visible && (
-    <Modal bgColor={bgColor}>
-      <Spinner {...restProps} />
-    </Modal>
-  );
+}) => (
+  <Modal bgColor={bgColor} visible={visible}>
+    <Spinner {...restProps} />
+  </Modal>
+);
 
 Loader.propTypes = {
   visible: bool,
