@@ -77,6 +77,7 @@ Modal.propTypes = {
   bgColor: string,
   onClose: func,
   bodyScrollLock: bool,
+  visible: bool,
 };
 
 export default Modal;
